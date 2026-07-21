@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-ivory text-ink font-body antialiased;
+}
+
+::selection {
+  background: #C9A44C;
+  color: #FBF6EE;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #FBF6EE;
+}
+::-webkit-scrollbar-thumb {
+  background: #C9A44C;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9C7C33;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.text-gold-shimmer {
+  background: linear-gradient(120deg, #9C7C33 0%, #E4C97A 45%, #9C7C33 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+.eyebrow {
+  @apply font-body text-xs tracking-[0.3em] uppercase text-gold-dark;
+}
+
+.container-px {
+  @apply px-6 md:px-10 lg:px-16;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 bg-maroon text-ivory font-body text-sm tracking-wide uppercase px-7 py-3.5 rounded-full transition-all duration-300 hover:bg-maroon-dark hover:shadow-soft active:scale-95;
+}
+
+.btn-outline {
+  @apply inline-flex items-center justify-center gap-2 border border-maroon text-maroon font-body text-sm tracking-wide uppercase px-7 py-3.5 rounded-full transition-all duration-300 hover:bg-maroon hover:text-ivory active:scale-95;
+}
+
+.btn-gold {
+  @apply inline-flex items-center justify-center gap-2 bg-gold text-ink font-body text-sm tracking-wide uppercase px-7 py-3.5 rounded-full transition-all duration-300 hover:bg-gold-dark hover:text-ivory active:scale-95;
+}
+
+.section-title {
+  @apply font-display text-4xl md:text-5xl text-maroon leading-tight;
+}
+
+.motif-divider {
+  background-image: repeating-linear-gradient(90deg, #C9A44C 0px, #C9A44C 6px, transparent 6px, transparent 14px);
+  height: 2px;
+}
