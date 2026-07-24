@@ -6,9 +6,10 @@ import Hero from '../components/Hero.jsx'
 import Seo from '../components/Seo.jsx'
 import CategoryStrip from '../components/CategoryStrip.jsx'
 import ProductCard from '../components/ProductCard.jsx'
-import ProductVisual from '../components/ProductVisual.jsx'
-import Testimonials from '../components/Testimonials.jsx'
+import BridalEdit from '../components/BridalEdit.jsx'
+// import Testimonials from '../components/Testimonials.jsx'
 import Newsletter from '../components/Newsletter.jsx'
+import BestsellersSection from '../components/BestsellersSection.jsx'
 import { productsApi } from '../api/products.js'
 
 const perks = [
@@ -26,7 +27,7 @@ export default function Home() {
 
   useEffect(() => {
     Promise.all([
-      productsApi.list({ bestseller: true, limit: 4 }),
+      productsApi.list({ bestseller: true, limit: 8 }),
       productsApi.list({ isNew: true, limit: 4 }),
       productsApi.list({ category: 'bridal', limit: 2 }),
     ])
@@ -65,66 +66,30 @@ export default function Home() {
         </div>
       )}
 
-      {bestsellers.length > 0 && (
-        <section className="container-px py-16">
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <span className="eyebrow">Most Loved</span>
-              <h2 className="section-title mt-3">Bestsellers</h2>
-            </div>
-            <Link to="/shop" className="hidden md:inline-flex items-center gap-1 text-sm text-maroon hover:gap-2 transition-all">
-              View All <ArrowRight size={16} />
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-7">
-            {bestsellers.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
-          </div>
-        </section>
-      )}
+      <BestsellersSection bestsellers={bestsellers} />
 
       {bridal.length > 0 && (
-        <section className="bg-blush/20 py-16">
-          <div className="container-px grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-            <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-              <span className="eyebrow">The Bridal Edit</span>
-              <h2 className="section-title mt-3">Heirlooms in the Making</h2>
-              <p className="text-ink/65 font-body mt-5 leading-relaxed max-w-md">
-                Every Jhanvika bridal weave takes upward of 25 days on the loom. Dense zari,
-                temple motifs, and a keepsake box designed to be opened again, decades from now.
-              </p>
-              <Link to="/shop?category=bridal" className="btn-primary mt-8 inline-flex">
-                Explore Bridal Edit <ArrowRight size={16} />
-              </Link>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="grid grid-cols-2 gap-4">
-              {bridal.map((p, idx) => (
-                <Link key={p.id} to={`/product/${p.slug}`} className={`rounded-2xl overflow-hidden shadow-card aspect-[4/5] ${idx === 1 ? 'mt-8' : ''}`}>
-                  <ProductVisual product={p} className="w-full h-full object-cover" />
-                </Link>
-              ))}
-            </motion.div>
-          </div>
-        </section>
+        <BridalEdit bridal={bridal} />
       )}
 
       {newArrivals.length > 0 && (
         <section className="container-px py-16">
-          <div className="flex items-end justify-between mb-10">
-            <div>
-              <span className="eyebrow">Fresh on the Loom</span>
-              <h2 className="section-title mt-3">New Arrivals</h2>
-            </div>
-            <Link to="/shop" className="hidden md:inline-flex items-center gap-1 text-sm text-maroon hover:gap-2 transition-all">
-              View All <ArrowRight size={16} />
-            </Link>
+          <div className="flex flex-col items-center text-center mb-10">
+            <span className="eyebrow">Fresh on the Loom</span>
+            <h2 className="section-title mt-3">New Arrivals</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-7">
             {newArrivals.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
           </div>
+          <div className="mt-8 flex justify-center">
+            <Link to="/shop" className="inline-flex items-center gap-1 text-sm text-maroon hover:gap-2 transition-all">
+              View All <ArrowRight size={16} />
+            </Link>
+          </div>
         </section>
       )}
 
-      <Testimonials />
+      {/* <Testimonials /> */}
       <Newsletter />
     </div>
   )

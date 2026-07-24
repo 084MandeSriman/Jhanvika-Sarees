@@ -172,59 +172,59 @@ export default function Products() {
         </div>
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Edit Product' : 'Add Product'} wide>
-        <form onSubmit={handleSave} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <TextField label="Name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required className="sm:col-span-2" />
-          <SelectField
-            label="Category"
-            value={form.categoryId}
-            onChange={(v) => setForm({ ...form, categoryId: v })}
-            options={[{ value: '', label: 'Select category' }, ...categories.map((c) => ({ value: c.id, label: c.name }))]}
-          />
-          <SelectField
-            label="Status"
-            value={form.status}
-            onChange={(v) => setForm({ ...form, status: v })}
-            options={[{ value: 'published', label: 'Published' }, { value: 'draft', label: 'Draft' }, { value: 'archived', label: 'Archived' }]}
-          />
-          <TextField label="Price (₹)" type="number" value={form.price} onChange={(v) => setForm({ ...form, price: v })} required />
-          <TextField label="MRP (₹)" type="number" value={form.mrp} onChange={(v) => setForm({ ...form, mrp: v })} required />
-          <TextField label="Fabric" value={form.fabric} onChange={(v) => setForm({ ...form, fabric: v })} />
-          <TextField label="Occasion" value={form.occasion} onChange={(v) => setForm({ ...form, occasion: v })} />
-          <TextField label="Stock" type="number" value={form.stock} onChange={(v) => setForm({ ...form, stock: v })} />
-          <div className="flex items-center gap-4 pt-6">
-            <label className="flex items-center gap-2 text-sm text-ink/70">
-              <input type="checkbox" checked={form.bestseller} onChange={(e) => setForm({ ...form, bestseller: e.target.checked })} /> Bestseller
-            </label>
-            <label className="flex items-center gap-2 text-sm text-ink/70">
-              <input type="checkbox" checked={form.isNew} onChange={(e) => setForm({ ...form, isNew: e.target.checked })} /> Mark as New
-            </label>
-          </div>
-          <TextArea label="Description" value={form.description} onChange={(v) => setForm({ ...form, description: v })} className="sm:col-span-2" />
-          <TextArea label="Highlights (one per line)" value={form.highlightsText} onChange={(v) => setForm({ ...form, highlightsText: v })} className="sm:col-span-2" />
-
-          <div className="sm:col-span-2">
-            <span className="text-xs tracking-wide uppercase text-ink/50">Swatch Colors (used for generated art)</span>
-            <div className="flex gap-4 mt-2">
-              {['primary', 'secondary', 'accent'].map((key) => (
-                <label key={key} className="flex flex-col items-center gap-1">
-                  <input
-                    type="color"
-                    value={form.paletteJson[key]}
-                    onChange={(e) => setForm({ ...form, paletteJson: { ...form.paletteJson, [key]: e.target.value } })}
-                    className="w-10 h-10 rounded cursor-pointer border border-ink/15"
-                  />
-                  <span className="text-[10px] text-ink/40 capitalize">{key}</span>
-                </label>
-              ))}
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? 'Edit Product' : 'Add Product'}>
+          <form onSubmit={handleSave} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <TextField label="Name" value={form.name} onChange={(v) => setForm({ ...form, name: v })} required className="sm:col-span-2" />
+            <SelectField
+              label="Category"
+              value={form.categoryId}
+              onChange={(v) => setForm({ ...form, categoryId: v })}
+              options={[{ value: '', label: 'Select category' }, ...categories.map((c) => ({ value: c.id, label: c.name }))]}
+            />
+            <SelectField
+              label="Status"
+              value={form.status}
+              onChange={(v) => setForm({ ...form, status: v })}
+              options={[{ value: 'published', label: 'Published' }, { value: 'draft', label: 'Draft' }, { value: 'archived', label: 'Archived' }]}
+            />
+            <TextField label="Price (₹)" type="number" value={form.price} onChange={(v) => setForm({ ...form, price: v })} required />
+            <TextField label="MRP (₹)" type="number" value={form.mrp} onChange={(v) => setForm({ ...form, mrp: v })} required />
+            <TextField label="Fabric" value={form.fabric} onChange={(v) => setForm({ ...form, fabric: v })} />
+            <TextField label="Occasion" value={form.occasion} onChange={(v) => setForm({ ...form, occasion: v })} />
+            <TextField label="Stock" type="number" value={form.stock} onChange={(v) => setForm({ ...form, stock: v })} />
+            <div className="sm:col-span-2 flex flex-wrap items-center gap-4 pt-6">
+              <label className="flex items-center gap-2 text-sm text-ink/70">
+                <input type="checkbox" checked={form.bestseller} onChange={(e) => setForm({ ...form, bestseller: e.target.checked })} className="h-4 w-4" /> Bestseller
+              </label>
+              <label className="flex items-center gap-2 text-sm text-ink/70">
+                <input type="checkbox" checked={form.isNew} onChange={(e) => setForm({ ...form, isNew: e.target.checked })} className="h-4 w-4" /> Mark as New
+              </label>
             </div>
-          </div>
+            <TextArea label="Description" value={form.description} onChange={(v) => setForm({ ...form, description: v })} className="sm:col-span-2" />
+            <TextArea label="Highlights (one per line)" value={form.highlightsText} onChange={(v) => setForm({ ...form, highlightsText: v })} className="sm:col-span-2" />
 
-          <div className="sm:col-span-2 flex gap-3 pt-2">
-            <button type="submit" disabled={saving} className="btn-primary">{saving ? 'Saving...' : editing ? 'Update Product' : 'Create Product'}</button>
-            <button type="button" onClick={() => setModalOpen(false)} className="btn-outline">Cancel</button>
-          </div>
-        </form>
+            <div className="sm:col-span-2">
+              <span className="text-xs tracking-wide uppercase text-ink/50">Swatch Colors (used for generated art)</span>
+              <div className="grid grid-cols-3 gap-4 mt-2 justify-items-center">
+                {['primary', 'secondary', 'accent'].map((key) => (
+                  <label key={key} className="flex flex-col items-center gap-1">
+                    <input
+                      type="color"
+                      value={form.paletteJson[key]}
+                      onChange={(e) => setForm({ ...form, paletteJson: { ...form.paletteJson, [key]: e.target.value } })}
+                      className="w-12 h-12 rounded cursor-pointer border border-ink/15"
+                    />
+                    <span className="text-[10px] text-ink/40 capitalize">{key}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="sm:col-span-2 flex justify-center gap-3 pt-2">
+              <button type="submit" disabled={saving} className="btn-primary">{saving ? 'Saving...' : editing ? 'Update Product' : 'Create Product'}</button>
+              <button type="button" onClick={() => setModalOpen(false)} className="btn-outline">Cancel</button>
+            </div>
+          </form>
       </Modal>
     </div>
   )
