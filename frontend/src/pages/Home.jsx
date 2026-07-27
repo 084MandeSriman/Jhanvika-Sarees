@@ -5,8 +5,9 @@ import { ArrowRight, Sparkles, Truck, ShieldCheck, RotateCcw } from 'lucide-reac
 import Hero from '../components/Hero.jsx'
 import Seo from '../components/Seo.jsx'
 import CategoryStrip from '../components/CategoryStrip.jsx'
-import ProductCard from '../components/ProductCard.jsx'
 import BridalEdit from '../components/BridalEdit.jsx'
+import NewArrivalsSection from '../components/NewArrivalsSection.jsx'
+import OccasionSection from '../components/OccasionSection.jsx'
 // import Testimonials from '../components/Testimonials.jsx'
 import Newsletter from '../components/Newsletter.jsx'
 import BestsellersSection from '../components/BestsellersSection.jsx'
@@ -72,22 +73,9 @@ export default function Home() {
         <BridalEdit bridal={bridal} />
       )}
 
-      {newArrivals.length > 0 && (
-        <section className="container-px py-16">
-          <div className="flex flex-col items-center text-center mb-10">
-            <span className="eyebrow">Fresh on the Loom</span>
-            <h2 className="section-title mt-3">New Arrivals</h2>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-7">
-            {newArrivals.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
-          </div>
-          <div className="mt-8 flex justify-center">
-            <Link to="/shop" className="inline-flex items-center gap-1 text-sm text-maroon hover:gap-2 transition-all">
-              View All <ArrowRight size={16} />
-            </Link>
-          </div>
-        </section>
-      )}
+      <OccasionSection />
+
+      <NewArrivalsSection newArrivals={newArrivals} />
 
       {/* <Testimonials /> */}
       <Newsletter />
