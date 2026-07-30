@@ -27,11 +27,18 @@ const addItem = asyncHandler(async (req, res) => {
 
   const cart = await getOrCreateCart(req.user.id)
   let item = await CartItem.findOne({ where: { cartId: cart.id, productId } })
+  const requestedQty = Number(qty)
+  if (requestedQty < 1) return fail(res, 400, 'Invalid quantity')
+  const finalQty = item ? item.qty + requestedQty : requestedQty
+  if (finalQty > product.stock) {
+    return fail(res, 400, `Only ${product.stock} unit${product.stock === 1 ? '' : 's'} available for ${product.name}`)
+  }
+
   if (item) {
-    item.qty += Number(qty)
+    item.qty = finalQty
     await item.save()
   } else {
-    item = await CartItem.create({ cartId: cart.id, productId, qty })
+    item = await CartItem.create({ cartId: cart.id, productId, qty: requestedQty })
   }
   const full = await Cart.findByPk(cart.id, { include: includeOpts })
   return ok(res, full)
@@ -43,8 +50,19 @@ const updateItem = asyncHandler(async (req, res) => {
   const cart = await getOrCreateCart(req.user.id)
   const item = await CartItem.findOne({ where: { id: req.params.itemId, cartId: cart.id } })
   if (!item) return fail(res, 404, 'Cart item not found')
-  if (qty < 1) await item.destroy()
-  else { item.qty = qty; await item.save() }
+
+  const product = await Product.findByPk(item.productId)
+  if (!product) return fail(res, 404, 'Product not found')
+  const requestedQty = Number(qty)
+  if (requestedQty < 1) {
+    await item.destroy()
+  } else {
+    if (requestedQty > product.stock) {
+      return fail(res, 400, `Only ${product.stock} unit${product.stock === 1 ? '' : 's'} available for ${product.name}`)
+    }
+    item.qty = requestedQty
+    await item.save()
+  }
   const full = await Cart.findByPk(cart.id, { include: includeOpts })
   return ok(res, full)
 })
@@ -67,12 +85,16 @@ const mergeCart = asyncHandler(async (req, res) => {
   for (const guestItem of items) {
     const product = await Product.findByPk(guestItem.productId)
     if (!product) continue
+    const qty = Math.max(1, Number(guestItem.qty || 1))
+    const finalQty = Math.min(qty, product.stock)
+    if (finalQty < 1) continue
+
     const existing = await CartItem.findOne({ where: { cartId: cart.id, productId: guestItem.productId } })
     if (existing) {
-      existing.qty += Number(guestItem.qty || 1)
+      existing.qty = Math.min(existing.qty + finalQty, product.stock)
       await existing.save()
     } else {
-      await CartItem.create({ cartId: cart.id, productId: guestItem.productId, qty: guestItem.qty || 1 })
+      await CartItem.create({ cartId: cart.id, productId: guestItem.productId, qty: finalQty })
     }
   }
   const full = await Cart.findByPk(cart.id, { include: includeOpts })

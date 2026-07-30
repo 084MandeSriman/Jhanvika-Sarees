@@ -6,12 +6,24 @@ const razorpay = require('../config/razorpay')
  * (paise for INR), which is why callers multiply rupees by 100.
  */
 async function createRazorpayOrder({ amount, currency = 'INR', receipt, notes = {} }) {
-  return razorpay.orders.create({
-    amount: Math.round(amount),
-    currency,
-    receipt,
-    notes,
-  })
+  try {
+    return await razorpay.orders.create({
+      amount: Math.round(amount),
+      currency,
+      receipt,
+      notes,
+    })
+  } catch (err) {
+    // Log SDK error details to help diagnose 4xx/5xx responses from Razorpay
+    // Avoid logging full secrets; log structured info instead.
+    // eslint-disable-next-line no-console
+    console.error('Razorpay order creation failed:', {
+      message: err && err.message,
+      statusCode: err && err.statusCode,
+      body: err && err.error,
+    })
+    throw err
+  }
 }
 
 /**

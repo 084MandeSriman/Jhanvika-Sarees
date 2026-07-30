@@ -16,6 +16,7 @@ const sortOptions = [
 export default function Shop() {
   const [params, setParams] = useSearchParams()
   const activeCategory = params.get('category') || 'all'
+  const activeOccasion = params.get('occasion') || ''
   const [sort, setSort] = useState('featured')
   const [maxPrice, setMaxPrice] = useState(50000)
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -39,6 +40,7 @@ export default function Shop() {
       sort: sort === 'featured' ? 'bestseller' : sort,
     }
     if (activeCategory !== 'all') query.category = activeCategory
+    if (activeOccasion) query.occasion = activeOccasion
     productsApi
       .list(query)
       .then((res) => {
@@ -47,7 +49,7 @@ export default function Shop() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false))
-  }, [activeCategory, sort, maxPrice])
+  }, [activeCategory, activeOccasion, sort, maxPrice])
 
   function setCategory(id) {
     if (id === 'all') params.delete('category')

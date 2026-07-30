@@ -10,7 +10,10 @@ export function loadRazorpayScript() {
     const script = document.createElement('script')
     script.src = 'https://checkout.razorpay.com/v1/checkout.js'
     script.onload = () => resolve(true)
-    script.onerror = () => reject(new Error('Could not load the Razorpay checkout script. Check your internet connection.'))
+    script.onerror = () => {
+      loadPromise = null
+      reject(new Error('Could not load the Razorpay checkout script. Check your internet connection.'))
+    }
     document.body.appendChild(script)
   })
   return loadPromise

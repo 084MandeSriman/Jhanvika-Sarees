@@ -76,7 +76,13 @@ export default function Checkout() {
     await payOnline(order, { name: address.fullName, email: address.email, contact: address.phone })
   }
 
+  const hasStockIssues = items.some((i) => i.stock && i.qty > i.stock)
+
   async function handlePlaceOrder() {
+    if (hasStockIssues) {
+      setPlaceError('One or more items exceed available stock. Reduce quantities before placing the order.')
+      return
+    }
     setPlacing(true)
     setPlaceError('')
     try {

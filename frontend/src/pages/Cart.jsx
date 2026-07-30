@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bookmark, Minus, Plus, ShoppingBag, ShoppingCart, X } from 'lucide-react'
-import SareeArt from '../components/SareeArt.jsx'
+import ProductVisual from '../components/ProductVisual.jsx'
 import { useCart } from '../context/CartContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 
@@ -42,13 +42,16 @@ export default function Cart() {
                 className="flex gap-4 bg-sand/60 rounded-2xl p-4"
               >
                 <div className="w-24 h-28 rounded-xl overflow-hidden shrink-0 shadow-card">
-                  <SareeArt palette={item.palette} className="w-full h-full object-cover" />
+                  <ProductVisual product={item} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 flex flex-col">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <Link to={`/product/${item.slug || item.id}`} className="font-body text-ink hover:text-maroon">{item.name}</Link>
                       <p className="text-xs text-ink/50 mt-1">{item.fabric}</p>
+                      {item.stock === 0 && (
+                        <p className="text-xs text-red-600 font-medium mt-1">Out of stock — remove to proceed</p>
+                      )}
                     </div>
                     <button onClick={() => removeItem(item.key)} aria-label="Remove item" className="text-ink/40 hover:text-maroon">
                       <X size={18} />
@@ -83,7 +86,7 @@ export default function Cart() {
                 {savedItems.map((item) => (
                   <div key={item.key} className="flex gap-4 bg-ivory border border-ink/10 rounded-2xl p-4">
                     <div className="w-20 h-24 rounded-xl overflow-hidden shrink-0 shadow-card opacity-80">
-                      <SareeArt palette={item.palette} className="w-full h-full object-cover" />
+                      <ProductVisual product={item} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 flex flex-col justify-between">
                       <div>
@@ -121,7 +124,14 @@ export default function Cart() {
               <span>Estimated Total</span>
               <span>₹{total.toLocaleString('en-IN')}</span>
             </div>
-            <Link to="/checkout" className="btn-primary w-full">Proceed to Checkout</Link>
+            {items.some((i) => i.stock === 0) ? (
+              <>
+                <button disabled className="btn-primary w-full opacity-40 cursor-not-allowed">Proceed to Checkout</button>
+                <p className="text-xs text-red-600 mt-2 text-center">Remove out-of-stock items to continue.</p>
+              </>
+            ) : (
+              <Link to="/checkout" className="btn-primary w-full">Proceed to Checkout</Link>
+            )}
             <Link to="/shop" className="block text-center text-sm text-ink/60 hover:text-maroon mt-4">Continue Shopping</Link>
           </div>
         )}

@@ -10,7 +10,7 @@ const Order = sequelize.define('Order', {
     type: DataTypes.ENUM('pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled', 'returned'),
     defaultValue: 'pending',
   },
-  paymentMethod: { type: DataTypes.ENUM('upi', 'card', 'cod'), allowNull: false, field: 'payment_method' },
+  paymentMethod: { type: DataTypes.ENUM('online', 'upi', 'card', 'cod'), allowNull: false, field: 'payment_method' },
   paymentStatus: { type: DataTypes.ENUM('pending', 'paid', 'failed', 'refunded'), defaultValue: 'pending', field: 'payment_status' },
   subtotal: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
   tax: { type: DataTypes.DECIMAL(10, 2), defaultValue: 0 },

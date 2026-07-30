@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, Heart, Loader2, Minus, Plus, Shield, ShoppingBag, Star, Truck } from 'lucide-react'
+import { Bell, Check, Heart, Loader2, Minus, Plus, Shield, ShoppingBag, Star, Truck } from 'lucide-react'
 import ProductVisual from '../components/ProductVisual.jsx'
 import ProductCard from '../components/ProductCard.jsx'
 import RecentlyViewedSection from '../components/RecentlyViewedSection.jsx'
@@ -75,7 +75,7 @@ export default function ProductDetail() {
   if (error || !product) {
     return (
       <div className="container-px py-24 text-center">
-        <p className="font-display text-3xl text-maroon">Saree not found</p>
+        <p className="font-display text-3xl text-maroon">Product not found</p>
         <p className="text-ink/50 mt-2 font-body text-sm">{error && `Could not reach the backend: ${error}`}</p>
         <Link to="/shop" className="btn-primary mt-6 inline-flex">Back to Shop</Link>
       </div>
@@ -85,6 +85,7 @@ export default function ProductDetail() {
   const price = Number(product.price)
   const mrp = Number(product.mrp)
   const wished = isWished(product.id)
+  const outOfStock = product.stock <= 0
 
   const productJsonLd = {
     '@context': 'https://schema.org',
@@ -179,6 +180,13 @@ export default function ProductDetail() {
             <span className="text-sm text-ink/55">{Number(product.rating).toFixed(1)} · {product.reviewsCount} reviews</span>
           </div>
 
+          {outOfStock && (
+            <span className="inline-flex items-center gap-1.5 mt-4 bg-red-50 text-red-600 border border-red-200 text-xs font-semibold tracking-wide uppercase px-3 py-1.5 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              Out of Stock
+            </span>
+          )}
+
           <div className="flex items-center gap-3 mt-5">
             <span className="font-display text-3xl text-maroon">₹{price.toLocaleString('en-IN')}</span>
             {mrp > price && (
@@ -203,43 +211,86 @@ export default function ProductDetail() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 mt-8">
+          <div className={`flex items-center gap-4 mt-8 ${outOfStock ? 'opacity-40 pointer-events-none select-none' : ''}`}>
             <div className="flex items-center border border-ink/20 rounded-full">
-              <button className="p-3 hover:text-maroon" onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease quantity"><Minus size={16} /></button>
+              <button className="p-3 hover:text-maroon" onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease quantity" disabled={outOfStock}><Minus size={16} /></button>
               <span className="w-8 text-center font-body">{qty}</span>
-              <button className="p-3 hover:text-maroon" onClick={() => setQty((q) => q + 1)} aria-label="Increase quantity"><Plus size={16} /></button>
+              <button
+                className="p-3 hover:text-maroon"
+                onClick={() => setQty((q) => Math.min(product.stock, q + 1))}
+                aria-label="Increase quantity"
+                disabled={outOfStock || qty >= product.stock}
+              >
+                <Plus size={16} />
+              </button>
             </div>
-            <span className="text-xs text-ink/50">{product.stock} pieces left in stock</span>
+            {!outOfStock && (
+              <span className="text-xs text-ink/50">{product.stock} pieces left in stock</span>
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 mt-6">
-            <button onClick={handleAddToCart} className="btn-outline flex-1">
-              <AnimatePresence mode="wait">
-                {added ? (
-                  <motion.span key="added" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
-                    <Check size={16} /> Added to Bag
-                  </motion.span>
-                ) : (
-                  <motion.span key="add" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
-                    <ShoppingBag size={16} /> Add to Bag
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </button>
-            <button onClick={handleBuyNow} className="btn-primary flex-1">Buy Now</button>
-            <button
-              onClick={() => toggle(product.id)}
-              aria-label="Toggle wishlist"
-              className={`w-12 h-12 rounded-full border flex items-center justify-center shrink-0 transition-colors ${wished ? 'border-maroon bg-maroon/5' : 'border-ink/20'}`}
-            >
-              <Heart size={18} className={wished ? 'fill-maroon text-maroon' : 'text-ink/60'} />
-            </button>
+            {outOfStock ? (
+              <>
+                <button
+                  disabled
+                  className="btn-outline flex-1 opacity-40 cursor-not-allowed"
+                >
+                  <span className="flex items-center gap-2"><ShoppingBag size={16} /> Add to Bag</span>
+                </button>
+                <button
+                  disabled
+                  className="btn-primary flex-1 opacity-40 cursor-not-allowed"
+                >
+                  Buy Now
+                </button>
+                <button
+                  onClick={() => toggle(product.id)}
+                  aria-label="Toggle wishlist"
+                  className={`w-12 h-12 rounded-full border flex items-center justify-center shrink-0 transition-colors ${wished ? 'border-maroon bg-maroon/5' : 'border-ink/20'}`}
+                >
+                  <Heart size={18} className={wished ? 'fill-maroon text-maroon' : 'text-ink/60'} />
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={handleAddToCart} className="btn-outline flex-1">
+                  <AnimatePresence mode="wait">
+                    {added ? (
+                      <motion.span key="added" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                        <Check size={16} /> Added to Bag
+                      </motion.span>
+                    ) : (
+                      <motion.span key="add" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                        <ShoppingBag size={16} /> Add to Bag
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </button>
+                <button onClick={handleBuyNow} className="btn-primary flex-1">Buy Now</button>
+                <button
+                  onClick={() => toggle(product.id)}
+                  aria-label="Toggle wishlist"
+                  className={`w-12 h-12 rounded-full border flex items-center justify-center shrink-0 transition-colors ${wished ? 'border-maroon bg-maroon/5' : 'border-ink/20'}`}
+                >
+                  <Heart size={18} className={wished ? 'fill-maroon text-maroon' : 'text-ink/60'} />
+                </button>
+              </>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mt-8 border-t border-ink/10 pt-6">
-            <div className="flex items-center gap-2 text-sm text-ink/60"><Truck size={18} className="text-maroon" /> Delivered in 4-7 days</div>
-            <div className="flex items-center gap-2 text-sm text-ink/60"><Shield size={18} className="text-maroon" /> 100% Authentic Weave</div>
-          </div>
+          {outOfStock && (
+            <button className="mt-3 w-full flex items-center justify-center gap-2 border border-maroon/40 text-maroon text-sm font-medium py-3 rounded-full hover:bg-maroon/5 transition-colors">
+              <Bell size={15} /> Notify Me When Available
+            </button>
+          )}
+
+          {!outOfStock && (
+            <div className="grid grid-cols-2 gap-4 mt-8 border-t border-ink/10 pt-6">
+              <div className="flex items-center gap-2 text-sm text-ink/60"><Truck size={18} className="text-maroon" /> Delivered in 4-7 days</div>
+              <div className="flex items-center gap-2 text-sm text-ink/60"><Shield size={18} className="text-maroon" /> 100% Authentic Weave</div>
+            </div>
+          )}
 
           <div className="mt-10">
             <div className="flex gap-6 border-b border-ink/10">
@@ -272,7 +323,7 @@ export default function ProductDetail() {
 
       {related.length > 0 && (
         <section className="mt-20">
-          <h2 className="section-title mb-8">You May Also Love</h2>
+          <h2 className="section-title mb-8 text-center">You May Also Love</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-7">
             {related.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
           </div>

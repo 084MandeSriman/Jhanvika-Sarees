@@ -32,7 +32,7 @@ export default function RecentlyViewedSection({ excludeId }) {
 
   return (
     <section className="mt-20">
-      <h2 className="section-title mb-8">Recently Viewed</h2>
+      <h2 className="section-title mb-8 text-center">Recently Viewed</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-7">
         {products.slice(0, 4).map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
       </div>

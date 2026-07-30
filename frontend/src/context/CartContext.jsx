@@ -5,6 +5,15 @@ import { cartApi } from '../api/cart.js'
 const CartContext = createContext(null)
 const STORAGE_KEY = 'jhanvika_cart_v1'
 
+function readLocalCart() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
 // Normalizes the backend Cart shape (Cart -> items -> product) into the flat
 // shape the UI already renders, so ProductCard/CartDrawer/Cart.jsx don't
 // need to know whether they're looking at a guest or a server cart.
@@ -20,16 +29,8 @@ function normalizeServerItem(cartItem) {
     images: p.images,
     fabric: p.fabric,
     qty: cartItem.qty,
+    stock: Number(p.stock || 0),
     savedForLater: cartItem.savedForLater,
-  }
-}
-
-function readLocalCart() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
   }
 }
 
@@ -92,6 +93,7 @@ export function CartProvider({ children }) {
         images: product.images,
         fabric: product.fabric,
         qty,
+        stock: Number(product.stock || 0),
       }]
     })
     setIsOpen(true)
@@ -104,7 +106,11 @@ export function CartProvider({ children }) {
       await reloadServerCart()
       return
     }
-    setItems((prev) => prev.map((i) => (i.key === key ? { ...i, qty } : i)))
+    setItems((prev) => prev.map((i) => {
+      if (i.key !== key) return i
+      const newQty = i.stock ? Math.min(qty, i.stock) : qty
+      return { ...i, qty: newQty }
+    }))
   }
 
   async function removeItem(key) {

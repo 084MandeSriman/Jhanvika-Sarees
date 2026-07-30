@@ -28,6 +28,7 @@ const listProducts = asyncHandler(async (req, res) => {
   }
   if (req.query.bestseller === 'true') where.bestseller = true
   if (req.query.isNew === 'true') where.isNew = true
+  if (req.query.occasion) where.occasion = req.query.occasion
   if (req.query.ids) {
     const idList = String(req.query.ids).split(',').map((v) => Number(v)).filter(Boolean)
     where.id = { [Op.in]: idList.length ? idList : [-1] }

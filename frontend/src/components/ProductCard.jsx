@@ -13,6 +13,7 @@ export default function ProductCard({ product, index = 0 }) {
   const price = Number(product.price)
   const mrp = Number(product.mrp)
   const discount = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0
+  const outOfStock = Number(product.stock) <= 0
 
   return (
     <motion.div
@@ -41,7 +42,11 @@ export default function ProductCard({ product, index = 0 }) {
           </motion.div>
 
           <div className="absolute left-1/2 top-4 -translate-x-1/2 flex flex-col items-center gap-2">
-            {discount > 0 && (
+            {outOfStock ? (
+              <span className="inline-flex items-center rounded-full bg-ink/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-ivory shadow-sm">
+                Out of Stock
+              </span>
+            ) : discount > 0 && (
               <span className="inline-flex items-center rounded-full bg-maroon px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-ivory shadow-sm">
                 {discount}% OFF
               </span>
@@ -85,13 +90,20 @@ export default function ProductCard({ product, index = 0 }) {
             )}
           </div>
 
-          <button
-            onClick={() => addItem(product, 1)}
-            className="mt-3 flex items-center justify-center gap-2 border-t border-ink/10 pt-2 text-xs font-semibold uppercase tracking-wide text-ink/80 transition-colors hover:text-maroon"
-          >
-            <ShoppingBag size={14} />
-            Add to Bag
-          </button>
+          {outOfStock ? (
+            <span className="mt-3 flex items-center justify-center gap-2 border-t border-ink/10 pt-2 text-xs font-semibold uppercase tracking-wide text-ink/30 cursor-not-allowed select-none">
+              <ShoppingBag size={14} />
+              Out of Stock
+            </span>
+          ) : (
+            <button
+              onClick={() => addItem(product, 1)}
+              className="mt-3 flex items-center justify-center gap-2 border-t border-ink/10 pt-2 text-xs font-semibold uppercase tracking-wide text-ink/80 transition-colors hover:text-maroon"
+            >
+              <ShoppingBag size={14} />
+              Add to Bag
+            </button>
+          )}
         </div>
       </div>
     </motion.div>

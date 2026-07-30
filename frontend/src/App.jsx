@@ -1,6 +1,5 @@
 import React from 'react'
 import { Routes, Route } from 'react-router-dom'
-import AnnouncementBar from './components/AnnouncementBar.jsx'
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
 import CartDrawer from './components/CartDrawer.jsx'
@@ -44,7 +43,6 @@ function StorefrontLayout({ children }) {
   return (
     <div className="flex flex-col min-h-screen">
       <ScrollToTop />
-      <AnnouncementBar />
       <Navbar />
       <CartDrawer />
       <main className="flex-1">{children}</main>

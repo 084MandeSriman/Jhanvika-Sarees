@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { Bookmark, Minus, Plus, ShoppingBag, X } from 'lucide-react'
 import { useCart } from '../context/CartContext.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
-import SareeArt from './SareeArt.jsx'
+import ProductVisual from './ProductVisual.jsx'
 
 export default function CartDrawer() {
   const { items, isOpen, setIsOpen, updateQty, removeItem, saveForLater, subtotal } = useCart()
@@ -50,7 +50,7 @@ export default function CartDrawer() {
                   {items.map((item) => (
                     <div key={item.key} className="flex gap-4">
                       <div className="w-20 h-24 rounded-lg overflow-hidden shrink-0 shadow-card">
-                        <SareeArt palette={item.palette} className="w-full h-full object-cover" />
+                        <ProductVisual product={item} className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 flex flex-col">
                         <div className="flex items-start justify-between gap-2">
@@ -78,11 +78,15 @@ export default function CartDrawer() {
                             <span className="text-sm w-6 text-center">{item.qty}</span>
                             <button
                               className="p-1.5 hover:text-maroon"
-                              onClick={() => updateQty(item.key, item.qty + 1)}
+                              onClick={() => updateQty(item.key, Math.min(item.qty + 1, item.stock || item.qty + 1))}
                               aria-label="Increase quantity"
+                              disabled={item.stock ? item.qty >= item.stock : false}
                             >
                               <Plus size={14} />
                             </button>
+                          </div>
+                          <div className="text-xs text-ink/45 mt-1">
+                            {item.stock > 0 ? `Stock: ${item.stock}` : item.stock === 0 ? 'Out of stock' : 'Stock info unavailable'}
                           </div>
                           <span className="font-body text-sm text-maroon">
                             ₹{(item.price * item.qty).toLocaleString('en-IN')}
@@ -106,9 +110,16 @@ export default function CartDrawer() {
                     <span className="text-ink/60">Subtotal</span>
                     <span className="text-lg text-maroon">₹{subtotal.toLocaleString('en-IN')}</span>
                   </div>
-                  <Link to="/checkout" onClick={() => setIsOpen(false)} className="btn-primary w-full">
+                  <Link
+                    to="/checkout"
+                    onClick={() => setIsOpen(false)}
+                    className={`btn-primary w-full ${items.some((item) => item.stock && item.qty > item.stock) ? 'opacity-50 pointer-events-none' : ''}`}
+                  >
                     Proceed to Checkout
                   </Link>
+                  {items.some((item) => item.stock && item.qty > item.stock) && (
+                    <p className="text-xs text-red-600 mt-2 text-center">Remove or reduce items that exceed stock before checkout.</p>
+                  )}
                   <Link to="/cart" onClick={() => setIsOpen(false)} className="block text-center text-sm text-ink/60 hover:text-maroon mt-3">
                     View full bag
                   </Link>
