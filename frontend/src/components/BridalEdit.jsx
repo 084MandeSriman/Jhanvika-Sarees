@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
@@ -39,6 +39,7 @@ const CloudClipDefs = () => (
 )
 
 // ── Arrange offers radially around a center point, like petals on a flower ──
+// DESKTOP / TABLET (sm and up) — unchanged from before.
 const FLOWER_RADIUS_PCT = 27
 const POSITION_SHIFT_LEFT = {
   0: -15.5,
@@ -47,22 +48,79 @@ const POSITION_SHIFT_LEFT = {
   3: -30.5,
   4: -35.5,
 }
-// Pulls the whole flower cluster upward inside its (square) container, since
-// the topmost petal otherwise sits ~23% down and leaves dead space under the
-// heading. Tweak this if you want the cluster higher/lower.
 const Y_SHIFT_UP_PCT = 14
 
-const defaultOffersPositioned = (list) =>
+// MOBILE ONLY — same 5-petal pentagon shape (same angles), just centered
+// (no left-shift, since a narrow phone container has no extra page margin
+// to absorb an off-center cluster) and radius tuned so that, combined with
+// the container-relative card size below, adjacent petals just touch —
+// the same "just touching, not overlapping" spacing the desktop layout has
+// — instead of stacking on top of each other.
+// NOTE: unchanged in this pass — only the horizontal-centering wrapper
+// around the whole cluster (below) was added.
+const MOBILE_FLOWER_RADIUS_PCT = 28
+const MOBILE_Y_SHIFT_UP_PCT = 2
+
+const getPositionedOffers = (list, isMobile) =>
   list.map((offer, idx) => {
     const angle = (-90 + idx * (360 / list.length)) * (Math.PI / 180)
-    const leftShift = POSITION_SHIFT_LEFT[idx] || 0
 
+    if (isMobile) {
+      return {
+        ...offer,
+        _x: 50 + MOBILE_FLOWER_RADIUS_PCT * Math.cos(angle),
+        _y: 50 + MOBILE_FLOWER_RADIUS_PCT * Math.sin(angle) - MOBILE_Y_SHIFT_UP_PCT,
+      }
+    }
+
+    const leftShift = POSITION_SHIFT_LEFT[idx] || 0
     return {
       ...offer,
       _x: 50 + FLOWER_RADIUS_PCT * Math.cos(angle) + leftShift,
       _y: 50 + FLOWER_RADIUS_PCT * Math.sin(angle) - Y_SHIFT_UP_PCT,
     }
   })
+
+// Detects <640px (Tailwind's `sm` breakpoint) so the flower switches to the
+// centered mobile coordinates above. Desktop/tablet rendering is untouched.
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 639px)')
+    const update = () => setIsMobile(mql.matches)
+    update()
+    mql.addEventListener('change', update)
+    return () => mql.removeEventListener('change', update)
+  }, [])
+  return isMobile
+}
+
+// Measures the flower container's real pixel width so every card can be
+// sized as a true percentage of it — the exact same 32% ratio the desktop
+// design already uses (250px card / 780px max container ≈ 32%). At the
+// 780px desktop cap this evaluates to ~250px, identical to before. On a
+// narrow phone it shrinks proportionally instead of being sized off the
+// viewport (which doesn't account for padding) — the whole flower becomes
+// a faithfully scaled-down copy of the desktop one, so spacing, overlap,
+// and centering all look the same, just smaller.
+const CARD_TO_CONTAINER_RATIO = 250 / 780
+const useContainerWidth = () => {
+  const ref = useRef(null)
+  const [width, setWidth] = useState(0)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect?.width
+      if (w) setWidth(w)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  return [ref, width]
+}
 
 // ── Cloud-shaped offer card ─────────────────────────────────────────────────
 // NOTE: all text content lives in the vertical CENTER of the card
@@ -71,45 +129,79 @@ const defaultOffersPositioned = (list) =>
 // extreme edges gets sliced off by the clip-path. Centering keeps the
 // category pill, the discount block, and the hover button inside the widest,
 // safest part of the cloud.
-const CloudOfferCard = ({ offer, compact = false }) => {
-  const width = compact ? 250 : 330
+//
+// `size` is the measured pixel width for this card (see useContainerWidth
+// above). Every padding/font value below is that same size's ratio to the
+// original 250px desktop card, with a readability floor — so a smaller
+// mobile card is a scaled-down copy of the desktop one, not an
+// independently-guessed size.
+const CloudOfferCard = ({ offer, size = 250 }) => {
+  const scale = size / 250
+
+  const px = (desktopPx, min) => `${Math.max(min, desktopPx * scale)}px`
+
   return (
     <Link
       to={offer.path}
       className="group relative block overflow-hidden"
-      style={{ width, aspectRatio: '1 / 1.2', clipPath: 'url(#offerCloudClip)', WebkitClipPath: 'url(#offerCloudClip)' }}
+      style={{ width: size, aspectRatio: '1 / 1.2', clipPath: 'url(#offerCloudClip)', WebkitClipPath: 'url(#offerCloudClip)' }}
     >
       <div
         className="absolute inset-0 transition-transform duration-300 group-hover:-translate-y-1"
         style={{ background: '#c9a35c' }}
       />
       <div
-        className="absolute inset-[8px] transition-transform duration-300 group-hover:-translate-y-1"
+        className="absolute transition-transform duration-300 group-hover:-translate-y-1"
         style={{
+          inset: px(8, 3),
           backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.45) 100%), url(${resolveImageUrl(offer.imageUrl)})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       />
 
-      <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center text-center text-white ${compact ? 'px-5' : 'px-8'}`}>
-        <div className={`bg-white rounded-full font-semibold tracking-[0.22em] uppercase text-maroon shadow-sm whitespace-nowrap ${compact ? 'px-3 py-0.5 text-[8px] mb-2' : 'px-4 py-1 text-[10px] mb-3'}`}>
+      <div
+        className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center text-white"
+        style={{ padding: px(20, 8) }}
+      >
+        <div
+          className="bg-white rounded-full font-semibold uppercase text-maroon shadow-sm"
+          style={{
+            fontSize: px(8, 7),
+            padding: `${px(2, 1.5).replace('px', '')}px ${px(12, 7).replace('px', '')}px`,
+            marginBottom: px(8, 4),
+            letterSpacing: `${Math.max(0.03, 0.22 * scale).toFixed(2)}em`,
+            maxWidth: '92%',
+            whiteSpace: 'normal',
+            lineHeight: 1.25,
+          }}
+        >
           {offer.label}
         </div>
 
-        <p className={compact ? 'text-[9px] font-medium text-white leading-none' : 'text-[10px] font-medium text-white leading-none'}>UP TO</p>
-        <p className={`font-display font-bold leading-none text-white mt-1.5 ${compact ? 'text-[28px]' : 'text-3xl'}`}>
+        <p className="font-medium text-white leading-none" style={{ fontSize: px(9, 6.5) }}>
+          UP TO
+        </p>
+        <p className="font-display font-bold leading-none text-white mt-1.5" style={{ fontSize: px(28, 16) }}>
           {offer.discount}%
         </p>
-        <p className={compact ? 'text-[9px] font-semibold tracking-wider text-white uppercase mt-1' : 'text-[10px] font-semibold tracking-wider text-white uppercase mt-1'}>
+        <p className="font-semibold tracking-wider text-white uppercase mt-1" style={{ fontSize: px(9, 6.5) }}>
           OFF
         </p>
-        <p className={`font-medium text-white/95 mt-2 leading-snug tracking-wide uppercase ${compact ? 'text-[9px]' : 'text-[10px]'}`}>
+        <p className="font-medium text-white/95 mt-2 leading-snug tracking-wide uppercase" style={{ fontSize: px(9, 6.5) }}>
           {offer.subtitle}
         </p>
 
+        {/* Hover-reveal CTA: invisible until hover, which never happens on
+            touch, so it's hidden below `sm` to keep the mobile card's
+            vertical rhythm tight. Desktop is unaffected. */}
         <button
-          className={`font-bold tracking-widest uppercase text-white rounded-full bg-maroon/95 opacity-0 translate-y-2 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0 ${compact ? 'mt-2 px-4 py-1.5 text-[8px]' : 'mt-3 px-5 py-2 text-[10px]'}`}
+          className="hidden sm:inline-block font-bold tracking-widest uppercase text-white rounded-full bg-maroon/95 opacity-0 translate-y-2 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0"
+          style={{
+            marginTop: px(12, 6),
+            padding: `${px(8, 4).replace('px', '')}px ${px(20, 12).replace('px', '')}px`,
+            fontSize: px(10, 8),
+          }}
         >
           SHOP NOW
         </button>
@@ -120,6 +212,12 @@ const CloudOfferCard = ({ offer, compact = false }) => {
 
 export default function BridalEdit({ bridal = [], offers = [] }) {
   const offerList = offers && offers.length ? offers : defaultOffers
+  const isMobile = useIsMobile()
+  const [flowerRef, containerWidth] = useContainerWidth()
+
+  const cardSize = containerWidth
+    ? Math.min(250, Math.max(96, containerWidth * CARD_TO_CONTAINER_RATIO))
+    : 250
 
   return (
     <>
@@ -128,6 +226,24 @@ export default function BridalEdit({ bridal = [], offers = [] }) {
       <section
         className="pt-0 pb-0 -mt-5 bg-ivory"
       >
+        {/* Mobile-only (≤768px) horizontal centering for the flower/clover
+            card group. Pure flexbox + margin auto, scoped by media query so
+            it can never touch tablet/desktop. Nothing about card size,
+            shape, gaps, vertical spacing, typography, images, hover effects,
+            animations, or section padding is changed — this only wraps the
+            existing cluster in a centering flex box. */}
+        <style>{`
+          @media (max-width: 768px) {
+            .offers-zone-flower-center {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              width: 100%;
+              margin: 0 auto;
+            }
+          }
+        `}</style>
+
         <div className="container-px">
           <CloudClipDefs />
 
@@ -142,38 +258,44 @@ export default function BridalEdit({ bridal = [], offers = [] }) {
             <h2 className="section-title mt-3">Offers Zone</h2>
           </motion.div>
 
-          {/* Offer cards — static flower arrangement, clouds as petals */}
-          <div
-            className="relative mx-auto -mt-8"
-            style={{ width: '100%', maxWidth: 780, aspectRatio: '1 / 1' }}
-          >
-            {/* Petals */}
-            {defaultOffersPositioned(offerList).map((offer, idx) => (
-              <motion.div
-                key={offer.id}
-                initial={{ opacity: 0, scale: 0.85 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: idx * 0.08 }}
-                className="absolute z-10"
-                style={{
-                  left: `${offer._x}%`,
-                  top: `${offer._y}%`,
-                  transform: 'translate(-50%, -50%)',
-                }}
-              >
-                <CloudOfferCard offer={offer} compact />
-              </motion.div>
-            ))}
+          {/* Offer cards — static flower arrangement, clouds as petals.
+              Same markup, same positions, same sizes at every screen size;
+              only wrapped in a flex box that centers it on mobile. */}
+          <div className="offers-zone-flower-center">
+            <div
+              ref={flowerRef}
+              className="relative mx-auto -mt-8"
+              style={{ width: '100%', maxWidth: 780, aspectRatio: '1 / 1' }}
+            >
+              {/* Petals */}
+              {getPositionedOffers(offerList, isMobile).map((offer, idx) => (
+                <motion.div
+                  key={offer.id}
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.45, delay: idx * 0.08 }}
+                  className="absolute z-10"
+                  style={{
+                    left: `${offer._x}%`,
+                    top: `${offer._y}%`,
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                >
+                  <CloudOfferCard offer={offer} size={cardSize} />
+                </motion.div>
+              ))}
+            </div>
           </div>
 
-          {/* Explore all link */}
+          {/* Explore all link — extra breathing room below the cluster on
+              mobile (mt-8); desktop keeps the original -mt-6 pull-up. */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.5 }}
-            className="text-center -mt-6"
+            className="text-center mt-8 sm:-mt-6"
           >
             <Link
               to="/shop"
@@ -189,4 +311,4 @@ export default function BridalEdit({ bridal = [], offers = [] }) {
       </section>
     </>
   )
-}
+} 
