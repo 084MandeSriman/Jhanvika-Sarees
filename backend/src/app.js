@@ -21,7 +21,8 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 app.use('/api', apiLimiter)
 
 // Serve uploaded product images
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')))
+// app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')))
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 app.get('/api/health', (req, res) => res.json({ success: true, status: 'ok', time: new Date().toISOString() }))
 
