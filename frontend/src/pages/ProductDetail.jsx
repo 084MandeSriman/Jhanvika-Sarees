@@ -196,7 +196,7 @@ export default function ProductDetail() {
               </>
             )}
           </div>
-          <p className="text-xs text-ink/45 mt-1">Inclusive of all taxes. Free shipping above ₹2,999.</p>
+          
 
           <p className="text-ink/65 font-body mt-6 leading-relaxed">{product.description}</p>
 
@@ -285,12 +285,7 @@ export default function ProductDetail() {
             </button>
           )}
 
-          {!outOfStock && (
-            <div className="grid grid-cols-2 gap-4 mt-8 border-t border-ink/10 pt-6">
-              <div className="flex items-center gap-2 text-sm text-ink/60"><Truck size={18} className="text-maroon" /> Delivered in 4-7 days</div>
-              <div className="flex items-center gap-2 text-sm text-ink/60"><Shield size={18} className="text-maroon" /> 100% Authentic Weave</div>
-            </div>
-          )}
+          
 
           <div className="mt-10">
             <div className="flex gap-6 border-b border-ink/10">
@@ -312,8 +307,7 @@ export default function ProductDetail() {
               {activeTab === 'Shipping & Returns' && (
                 <p>
                   Orders are dispatched within 24-48 hours and delivered in 4-7 business days across India.
-                  We offer a 7-day easy return window from the date of delivery — the saree must be unworn,
-                  unwashed, and with original tags intact.
+                  Returns are handled according to our returns policy.
                 </p>
               )}
             </div>
