@@ -13,9 +13,9 @@ async function start() {
     await sequelize.authenticate()
     console.log('✅ MySQL connection established')
 
-    // In production, use proper migrations (sequelize-cli) instead of sync().
-    // sync({ alter: true }) is convenient for this project during development.
-    await sequelize.sync({ alter: true })
+    // Avoid alter sync: MySQL can accumulate duplicate indexes for unique fields.
+    // Use migrations for changes to existing tables.
+    await sequelize.sync()
     console.log('✅ Database schema synced')
 
     app.listen(PORT, () => {
